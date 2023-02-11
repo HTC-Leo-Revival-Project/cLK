@@ -83,8 +83,8 @@ static unsigned *font = ui_font_8x16;
 #define MENU_HIGHLIGHT_UP 	0x01
 #define MENU_HIGHLIGHT_DOWN  0x02
 
-#define FBCON_FOREGROUND		RGB565_BLACK
-#define FBCON_BACKGROUND		RGB565_WHITE
+#define FBCON_FOREGROUND		RGB565_WHITE
+#define FBCON_BACKGROUND		RGB565_BLACK
 
 #define KEY_ERROR 99
 
@@ -125,8 +125,8 @@ struct menu_item menu_main_items[] = {
 static unsigned menu_chosen_item = 0;
 static unsigned menu_item_number = sizeof(menu_main_items)/sizeof(struct menu_item);
 
-static uint16_t text_color 				= RGB565_BLACK;
-static uint16_t background_color 		= RGB565_WHITE;
+static uint16_t text_color 				= RGB565_WHITE;
+static uint16_t background_color 		= RGB565_BLACK;
 static uint16_t highlight_color 		= RGB565_GREEN;
 static uint16_t text_hightlight_color 	= RGB565_WHITE;
 
