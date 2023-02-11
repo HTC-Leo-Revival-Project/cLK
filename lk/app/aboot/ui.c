@@ -57,6 +57,11 @@
 #include "recovery.h"
 #include "version.h"
 
+#include <reg.h>
+#include <dev/fbcon.h>
+#include "target/display.h"
+#include <debug.h>
+
 #define MENU_FONT_8X16
 
 #include "ui_font.h"
@@ -87,6 +92,10 @@ static unsigned *font = ui_font_8x16;
 #define FBCON_BACKGROUND		RGB565_BLACK
 
 #define KEY_ERROR 99
+
+#define FB_FORMAT_RGB565 0
+#define LCDC_FB_BPP 16
+#define MSM_MDP_BASE1 0xAA200000
 
 uint16_t keyp = KEY_ERROR;
 
@@ -311,8 +320,10 @@ void ui_menu_redraw(unsigned mode)
 		ui_menu_clear();
 		/* redraw the header */
 		char* header = "cLK-" CLK_VERSION;
+		char* fb_addr = (unsigned*)readl( MSM_MDP_BASE1 + 0x90008);
 		ui_hightlight_line(0, RGB565_BLACK);
 		ui_write_line(header, 0, RGB565_WHITE);
+		ui_write_line(fb_addr, 0, RGB565_WHITE);
 		ui_draw_horizontal_line(FONT_HEIGHT, RGB565_BLACK, 11);
 		/* redraw the menu items */
 		for (uint8_t i = 0; i < menu_item_number; i++)
