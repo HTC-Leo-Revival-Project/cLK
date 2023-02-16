@@ -704,10 +704,13 @@ void aboot_init(const struct app_descriptor *app)
 	if (keys_get_state(KEY_HOME) != 0)
 		boot_into_recovery = 1;
 	if (keys_get_state(KEY_BACK) != 0)
-		goto boot_menu;
+		goto normal_boot;
 	if (keys_get_state(KEY_VOLUMEDOWN) != 0)
 		display_init();
+	else
+		goto boot_menu;
 
+normal_boot:
 	#if NO_KEYPAD_DRIVER
 	/* With no keypad implementation, check the status of USB connection. */
 	/* If USB is connected then go into fastboot mode. */
