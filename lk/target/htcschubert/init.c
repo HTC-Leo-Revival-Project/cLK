@@ -166,7 +166,7 @@ void target_init(void)
 }
 void display_lk_version()
 {
-    _dputs("cedesmith's LK (CLK) v" CLK_VERSION "\n");
+    _dputs("HtcLeoRevivalProject LK (HLK) v" CLK_VERSION "\n");
 }
 struct fbcon_config* fbcon_display(void);
 void htcleo_fastboot_init()
@@ -184,11 +184,24 @@ void htcleo_fastboot_init()
 
 	cmd_oem_register();
 }
+
+#define BASE_ADDR   (*(volatile unsigned int *)0xAA290008)
 void target_early_init(void)
 {
 	//cedesmith: write reset vector while we can as MPU kicks in after flash_init();
 	writel(0xe3a00546, 0); //mov r0, #0x11800000
 	writel(0xe590f004, 4); //ldr	r15, [r0, #4]
+
+	//relocate framebuffer to leos adress
+	unsigned int *ptr = (unsigned int *)BASE_ADDR;
+    // Write the base address
+    BASE_ADDR = 0x02A00000;
+
+		if(fbcon_display() == NULL) {
+		display_init();
+		display_lk_version();
+		//htcleo_ptable_dump(&flash_ptable);
+	}
 }
 unsigned board_machtype(void)
 {
