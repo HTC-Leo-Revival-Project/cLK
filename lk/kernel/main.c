@@ -60,16 +60,34 @@ static void call_constructors(void)
 	}
 }
 
+#define BASE_ADDR   (*(volatile unsigned int *)0xAA290008)
+#define FILL_LENGTH 0x00C00000
+
+void painScreen(unsigned int fillValue) {
+    unsigned int *ptr = (unsigned int *)BASE_ADDR;
+
+    // Write the base address
+    BASE_ADDR = 0x02A00000;
+
+    // Fill memory starting from the base address with the fill value
+    unsigned int end_addr = BASE_ADDR + FILL_LENGTH;
+    while (ptr < (unsigned int *)end_addr) {
+        *ptr = fillValue;
+        ptr++;
+    }
+}
+
 /* called from crt0.S */
 void kmain(void) __NO_RETURN __EXTERNALLY_VISIBLE;
 void kmain(void)
 {
+	painScreen(0x07E0);
 	// get us into some sort of thread context
 	thread_init_early();
-
+	painScreen(0xF800);
 	// early arch stuff
 	arch_early_init();
-
+	painScreen(0x001F);
 	// do any super early platform initialization
 	platform_early_init();
 
