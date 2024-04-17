@@ -48,7 +48,7 @@ static void initial_thread_func(void)
 {
 	int ret;
 
-//	dprintf("initial_thread_func: thread %p calling %p with arg %p\n", current_thread, current_thread->entry, current_thread->arg);
+	dprintf(INFO,"initial_thread_func: thread %p calling %p with arg %p\n", current_thread, current_thread->entry, current_thread->arg);
 //	dump_thread(current_thread);
 
 	/* exit the implicit critical section we're within */
@@ -56,7 +56,7 @@ static void initial_thread_func(void)
 
 	ret = current_thread->entry(current_thread->arg);
 
-//	dprintf("initial_thread_func: thread %p exiting with %d\n", current_thread, ret);
+	dprintf(INFO,"initial_thread_func: thread %p exiting with %d\n", current_thread, ret);
 
 	thread_exit(ret);
 }
@@ -82,7 +82,7 @@ void arch_thread_initialize(thread_t *t)
 
 void arch_context_switch(thread_t *oldthread, thread_t *newthread)
 {
-//	dprintf("arch_context_switch: old %p (%s), new %p (%s)\n", oldthread, oldthread->name, newthread, newthread->name);
+	dprintf(INFO,"arch_context_switch: old %p (%s), new %p (%s)\n", oldthread, oldthread->name, newthread, newthread->name);
 	arm_context_switch(&oldthread->arch.sp, newthread->arch.sp);
 }
 

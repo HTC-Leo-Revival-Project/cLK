@@ -35,6 +35,7 @@ __WEAK void platform_init_mmu_mappings(void)
 
 __WEAK void platform_early_init(void)
 {
+    dprintf(INFO, "YOLO");
 }
 
 __WEAK void platform_init(void)

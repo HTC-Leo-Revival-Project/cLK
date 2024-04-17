@@ -8,6 +8,7 @@ void platform_init_interrupts(void);
 void platform_init_timer();
 void platform_early_init(void)
 {
+	dprintf(INFO, "platform_early_init()\n");
 	platform_init_interrupts();
 	platform_init_timer();
 }

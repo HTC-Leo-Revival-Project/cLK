@@ -101,6 +101,7 @@ static struct ihandler handler[NR_IRQS];
 
 void platform_init_interrupts(void)
 {
+	dprintf(INFO, "TOP OF platform_init_interrupts \n");
 	writel(0xffffffff, VIC_INT_CLEAR0);
 	writel(0xffffffff, VIC_INT_CLEAR1);
 	writel(0, VIC_INT_SELECT0);
@@ -113,6 +114,7 @@ void platform_init_interrupts(void)
 
 enum handler_return platform_irq(struct arm_iframe *frame)
 {
+	dprintf(INFO, "TOP OF PLATFORM_IRQ \n");
 	unsigned num;
 	enum handler_return ret;
 	num = readl(VIC_IRQ_VEC_RD);

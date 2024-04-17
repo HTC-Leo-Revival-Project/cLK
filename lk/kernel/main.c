@@ -33,6 +33,8 @@
 #include <kernel/thread.h>
 #include <kernel/timer.h>
 #include <kernel/dpc.h>
+#include <reg.h>
+#include <platform/iomap.h>
 
 extern void *__ctor_list;
 extern void *__ctor_end;
@@ -61,22 +63,49 @@ static void call_constructors(void)
 }
 
 
+// cedesmith: we need to stop interrupts or kernel will receive dex interrupt to early and crash
+#define VIC_REG(off) (MSM_VIC_BASE + (off))
+#define VIC_INT_EN0         VIC_REG(0x0010)
+#define VIC_INT_EN1         VIC_REG(0x0014)
+#define VIC_INT_CLEAR0      VIC_REG(0x00B0)
+#define VIC_INT_CLEAR1      VIC_REG(0x00B4)
+#define VIC_INT_MASTEREN    VIC_REG(0x0068)  /* 1: IRQ, 2: FIQ     */
+
+void htcleo_disable_interrupts1(void)
+{
+	//clear current pending interrupts
+	writel(0xffffffff, VIC_INT_CLEAR0);
+	writel(0xffffffff, VIC_INT_CLEAR1);
+
+	//disable all
+	writel(0, VIC_INT_EN0);
+	writel(0, VIC_INT_EN1);
+	//disable interrupts
+	writel(0, VIC_INT_MASTEREN);
+}
+
+
 /* called from crt0.S */
 void kmain(void) __NO_RETURN __EXTERNALLY_VISIBLE;
 void kmain(void)
 {
+
+htcleo_disable_interrupts1();
+
 	// get us into some sort of thread context
 	thread_init_early();
 	// early arch stuff
 	arch_early_init();
 	// do any super early platform initialization
-	platform_early_init();
+	
 
 	// do any super early target initialization
 	target_early_init();
 
+	platform_early_init();
+
 	dprintf(INFO, "welcome to lk\n\n");
-	
+
 	// deal with any static constructors
 	dprintf(SPEW, "calling constructors\n");
 	call_constructors();
@@ -97,13 +126,21 @@ void kmain(void)
 	dprintf(SPEW, "initializing timers\n");
 	timer_init();
 
+
 #if (!ENABLE_NANDWRITE)
 	// create a thread to complete system initialization
 	dprintf(SPEW, "creating bootstrap completion thread\n");
 	thread_resume(thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE));
-
+	dprintf(INFO, "THREAD TRIED TO START \n");
 	// enable interrupts
 	exit_critical_section();
+
+	while(true){
+		dprintf(INFO,"IM ALIVE \n");
+	}
+dprintf(INFO, "exit_critical_section passed \n");
+
+
 
 	// become the idle thread
 	thread_become_idle();

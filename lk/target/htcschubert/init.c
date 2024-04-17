@@ -185,7 +185,7 @@ void htcleo_fastboot_init()
 	cmd_oem_register();
 }
 
-#define BASE_ADDR   (*(volatile unsigned int *)0xAA290008)
+#define MDP_ADRESS   (*(volatile unsigned int *)0xAA290008)
 void target_early_init(void)
 {
 	//cedesmith: write reset vector while we can as MPU kicks in after flash_init();
@@ -193,14 +193,15 @@ void target_early_init(void)
 	writel(0xe590f004, 4); //ldr	r15, [r0, #4]
 
 	//relocate framebuffer to leos adress
-	unsigned int *ptr = (unsigned int *)BASE_ADDR;
+	//unsigned int *ptr = (unsigned int *)MDP_ADRESS;
     // Write the base address
-    BASE_ADDR = 0x02A00000;
-
+    //MDP_ADRESS = 0x02A00000;
+	unsigned int fbadress = readl(0xAA290008);
 		if(fbcon_display() == NULL) {
 		display_init();
 		display_lk_version();
 		//htcleo_ptable_dump(&flash_ptable);
+		dprintf(INFO, "Found Framebuffer @0x%x \n", fbadress);
 	}
 }
 unsigned board_machtype(void)
