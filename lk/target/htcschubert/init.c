@@ -184,6 +184,95 @@ void htcleo_fastboot_init()
 
 	cmd_oem_register();
 }
+extern void gpio_set(unsigned n, unsigned on);
+
+extern int gpio_get(unsigned n);
+extern void mdelay(unsigned msecs);
+void gpio_fuzzer(int maxgpio){
+	dprintf(INFO, "starting gpio fuzzer \n");
+	for (int i=0; i <= maxgpio; i++){
+		if (i != 29){
+		dprintf(INFO, "Switching GPIO number %d state \n", i);
+		unsigned int val = gpio_get(i);
+		gpio_set(i, !val);
+		mdelay(4000);
+		gpio_set(i,val);
+		}
+	}
+}
+
+void findmaxgpiopin(int maxgpio){
+	dprintf(INFO, "Finding max gpio pin \n");
+	for (int i =0; i <= maxgpio; i++){
+		unsigned int val = gpio_get(i);
+		if (val == (unsigned int)-1){
+			dprintf(INFO, "MAXIMAL POSSIBLE GPIO PIN IS %d", i);
+			mdelay(999999999);
+		}
+	}
+	
+}
+
+void findpowerkey(int maxgpio) {
+    int i = 0;
+    int gpio_pins_run1[maxgpio]; // Array to store detected GPIO pins in the first run
+    int gpio_pins_run2[maxgpio]; // Array to store detected GPIO pins in the second run
+    int gpio_pins_count1 = 0; // Count of detected GPIO pins in the first run
+    int gpio_pins_count2 = 0; // Count of detected GPIO pins in the second run
+    
+    dprintf(INFO, "Trying to find Powerkey GPIO \n");
+    
+    // First Run
+
+        while (i <= maxgpio) {
+            unsigned int val = gpio_get(i);
+            if (val == 1) {
+                gpio_pins_run1[gpio_pins_count1++] = i;
+				dprintf(INFO, "FIRST RUN GPIO %d is HIGH \n", gpio_pins_run1[gpio_pins_count1] );
+            }
+            i++;
+        }
+    
+    // Print a message before the second run
+    dprintf(INFO, "Press any key within 5 seconds\n");
+    mdelay(5000);
+
+    // Reset variables for the second run
+    i = 0;
+    gpio_pins_count1 = 0;
+    
+    // Second Run
+        while (i <= maxgpio) {
+            unsigned int val = gpio_get(i);
+			bool found = false;
+            if (val == 1) {
+                // Check if the GPIO pin is detected in the first run
+                for (int j = 0; j < gpio_pins_count1; j++) {
+                    if (gpio_pins_run1[j] == gpio_pins_run2[i]) {
+                        found = true;
+                        break;
+                    }
+                }
+                // If not detected in the first run, it's a new GPIO pin
+                if (!found) {
+                    gpio_pins_run2[gpio_pins_count2++] = i;
+                }
+            }
+            i++;
+        }
+
+				dprintf(INFO, "Array 1 length is %d \n",sizeof(gpio_pins_run1));
+		dprintf(INFO, "Array 2 length is %d \n",sizeof(gpio_pins_run2));
+		mdelay(5000);
+
+    // Compare and print new GPIO pins detected in the second run
+    for (int k = 0; k < gpio_pins_count2; k++) {
+		 dprintf(INFO, "NEW POWER KEY IS ON GPIO %d \n", gpio_pins_run2[k]);
+        }
+
+
+
+}
 
 #define MDP_ADRESS   (*(volatile unsigned int *)0xAA290008)
 void target_early_init(void)
@@ -196,13 +285,26 @@ void target_early_init(void)
 	//unsigned int *ptr = (unsigned int *)MDP_ADRESS;
     // Write the base address
     //MDP_ADRESS = 0x02A00000;
-	unsigned int fbadress = readl(0xAA290008);
+	unsigned long fbadress = readl(0xAA290008);
 		if(fbcon_display() == NULL) {
 		display_init();
 		display_lk_version();
 		//htcleo_ptable_dump(&flash_ptable);
 		dprintf(INFO, "Found Framebuffer @0x%x \n", fbadress);
 	}
+	// 		while(1){
+	// 		unsigned int gpio121status = gpio_get(121);
+	
+	// 		unsigned int gpio124status = gpio_get(124);
+	// 		unsigned int gpio125status = gpio_get(125);
+	// 		dprintf(INFO, "GPIO 121 status is: %d \n", gpio121status);
+	// 		dprintf(INFO, "GPIO 124 status is: %d \n", gpio124status);
+	// 		dprintf(INFO, "GPIO 125 status is: %d \n", gpio125status);
+			
+	// 		mdelay(1000);
+	// 	}
+	findmaxgpiopin(300);
+	 for(;;);
 }
 unsigned board_machtype(void)
 {

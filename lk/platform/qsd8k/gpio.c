@@ -204,7 +204,7 @@ int gpio_get(unsigned n)
 	gpioregs *r;
 	unsigned b;
 
-	if((r = find_gpio(n, &b)) == 0) return 0;
+	if((r = find_gpio(n, &b)) == 0) return -1;
 
 	return (readl(r->in) & b) ? 1 : 0;
 }
