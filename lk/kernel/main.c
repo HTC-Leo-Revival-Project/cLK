@@ -33,6 +33,7 @@
 #include <kernel/thread.h>
 #include <kernel/timer.h>
 #include <kernel/dpc.h>
+#include <smem.h>
 
 extern void *__ctor_list;
 extern void *__ctor_end;
@@ -70,13 +71,20 @@ void kmain(void)
 	// early arch stuff
 	arch_early_init();
 
+	target_early_init();
 	// do any super early platform initialization
 	platform_early_init();
 
 	// do any super early target initialization
-	target_early_init();
+	
 
 	dprintf(INFO, "welcome to lk\n\n");
+	// Read smem ptable here for now
+	smem_ptable_init();
+  	smem_ram_ptable_init_v1();
+	uint32_t ddr_start = get_ddr_start();
+	dprintf(CRITICAL, "ddr start: %08x\n", ddr_start);
+	for (;;);
 	
 	// deal with any static constructors
 	dprintf(SPEW, "calling constructors\n");
