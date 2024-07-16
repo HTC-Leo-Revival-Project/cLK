@@ -43,6 +43,8 @@ static unsigned           smem_apps_flash_start = 0xFFFFFFFF;
 
 static ram_partition_table ptable;
 
+uint32_t ddr_start = 0;
+
 static void dump_smem_ptable(void)
 {
   unsigned i;
@@ -63,16 +65,15 @@ void smem_ptable_init(void)
   unsigned ret;
   unsigned len = 0;
 
-  dprintf(ALWAYS, "smem_ptable_init()\n");
+  dprintf(INFO, "smem_ptable_init()\n");
 
   /* Read only the header portion of ptable */
   ret = smem_read_alloc_entry_offset(
       SMEM_AARM_PARTITION_TABLE, &smem_ptable, SMEM_PTABLE_HDR_LEN, 0);
   if (ret) {
-    dprintf(ALWAYS, "Failed to read ptable hdr (%d)\n", ret);
+    dprintf(INFO, "Failed to read ptable hdr (%d)\n", ret);
     return;
   }
-  dprintf(ALWAYS, "Ptable hdr read success\n");
 
   /* Verify ptable magic */
   if (smem_ptable.magic[0] != _SMEM_PTABLE_MAGIC_1 ||
@@ -176,10 +177,7 @@ static void smem_copy_ram_ptable(void *buf)
       ptable.parts[pentry].type     = table_v1->parts[pentry].type;
       ptable.parts[pentry].num_partitions =
           table_v1->parts[pentry].num_partitions;
-
-      dprintf(ALWAYS, "%d: start=0x%08x size=0x%08x attr: 0x%08x\n",
-			pentry, ptable.parts[pentry].start, ptable.parts[pentry].size, ptable.parts[pentry].attr);
-    }
+	}
   }
   else if (ptable.hdr.version == SMEM_RAM_PTABLE_VERSION_0) {
     table_v0 = (struct smem_ram_ptable *)buf;
@@ -196,7 +194,15 @@ static void smem_copy_ram_ptable(void *buf)
           table_v0->parts[pentry].num_partitions;
 
       dprintf(ALWAYS, "%d: start=0x%08x size=0x%08x attr: 0x%08x\n",
-			pentry, ptable.parts[pentry].start, ptable.parts[pentry].size, ptable.parts[pentry].attr);
+			pentry, ptable.parts[pentry].start, 
+			ptable.parts[pentry].size, 
+			ptable.parts[pentry].attr);
+
+	  if(table_v0->parts[pentry].domain == APPS_DOMAIN) {
+		if(table_v0->parts[pentry].category == 1) {
+			ddr_start = table_v0->parts[pentry].start;
+	  	}
+	  }
     }
   }
   else {
@@ -268,24 +274,6 @@ uint32_t smem_get_ram_ptable_version(void) { return ptable.hdr.version; }
 
 uint32_t get_ddr_start(void)
 {
-  uint32_t      i;
-  ram_partition ptn_entry;
-  uint32_t      len = 0;
-
-  len = smem_get_ram_ptable_len();
-
-  /* Determine the Start addr of the DDR RAM */
-  for (i = 0; i < len; i++) {
-    smem_get_ram_ptable_entry(&ptn_entry, i);
-    if (ptn_entry.type == SYS_MEMORY) {
-      if ((ptn_entry.category == SDRAM) || (ptn_entry.category == IMEM)) {
-        /* Check to ensure that start address is 1MB aligned */
-        //ASSERT((ptn_entry.start & (SIZE_1MB - 1)) == 0);
-        return ptn_entry.start;
-      }
-    }
-  }
-  ASSERT("DDR Start Mem Not found\n");
-  return 0;
+  return ddr_start;
 }
 

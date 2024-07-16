@@ -647,5 +647,6 @@ void     smem_get_ram_ptable_entry(ram_partition *, uint32_t entry);
 uint32_t smem_get_ram_ptable_version(void);
 uint32_t smem_get_ram_ptable_len(void);
 uint32_t get_ddr_start(void);
+uint32_t get_ddr_length(void);
 
 #endif /* __PLATFORM_MSM_SHARED_SMEM_H */
