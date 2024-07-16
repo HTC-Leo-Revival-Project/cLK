@@ -33,45 +33,102 @@
 
 #include "smem.h"
 
-static struct smem *smem = (void *)(MSM_SHARED_BASE);
+//static struct smem *smem = (void *)(MSM_SHARED_BASE);
+
+/* DYNAMIC SMEM REGION feature enables LK to dynamically
+ * read the SMEM addr info from TCSR register or IMEM location.
+ * The first word read, if indicates a MAGIC number, then
+ * Dynamic SMEM is assumed to be enabled. Read the remaining
+ * SMEM info for SMEM Size and Phy_addr from the other bytes.
+ */
+
+static uint32_t smem_get_base_addr(void)
+{
+    return MSM_SHARED_BASE;
+}
 
 /* buf MUST be 4byte aligned, and len MUST be a multiple of 8. */
 unsigned smem_read_alloc_entry(smem_mem_type_t type, void *buf, int len)
 {
-	struct smem_alloc_info *ainfo;
-	unsigned *dest = buf;
-	unsigned src;
-	unsigned size;
+  struct smem_alloc_info *ainfo;
+  unsigned *              dest = buf;
+  unsigned                src;
+  unsigned                size;
+  uint32_t                smem_addr = 0;
+  struct smem *           smem;
 
-	if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
-		return 1;
+  smem_addr = smem_get_base_addr();
+  smem      = (struct smem *)smem_addr;
 
-	if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
-		return 1;
+  if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
+    return 1;
 
-	/* TODO: Use smem spinlocks */
-	ainfo = &smem->alloc_info[type];
-	if (readl(&ainfo->allocated) == 0)
-		return 1;
+  if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
+    return 1;
 
-	size = readl(&ainfo->size);
+  /* TODO: Use smem spinlocks */
+  ainfo = &smem->alloc_info[type];
+  if (readl(&ainfo->allocated) == 0)
+    return 1;
 
-	if (size != (unsigned)((len + 7) & ~0x00000007))
-		return 1;
+  size = readl(&ainfo->size);
 
-	src = MSM_SHARED_BASE + readl(&ainfo->offset);
-	for (; len > 0; src += 4, len -= 4)
-		*(dest++) = readl(src);
+  if (size < (unsigned)((len + 7) & ~0x00000007))
+    return 1;
 
-	return 0;
+  src = smem_addr + readl(&ainfo->offset);
+  for (; len > 0; src += 4, len -= 4)
+    *(dest++) = readl(src);
+
+  return 0;
 }
 
-unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, int offset)
+/* Return a pointer to smem_item with size */
+void *smem_get_alloc_entry(smem_mem_type_t type, uint32_t *size)
+{
+  struct smem_alloc_info *ainfo     = NULL;
+  uint32_t                smem_addr = 0;
+  struct smem *           smem;
+  uint32_t                base_ext = 0;
+  uint32_t                offset   = 0;
+  void *                  ret      = NULL;
+
+  smem_addr = smem_get_base_addr();
+  smem      = (struct smem *)smem_addr;
+
+  if (type < SMEM_FIRST_VALID_TYPE || type > SMEM_LAST_VALID_TYPE)
+    return ret;
+
+  ainfo = &smem->alloc_info[type];
+  if (readl(&ainfo->allocated) == 0)
+    return ret;
+
+  *size    = readl(&ainfo->size);
+  base_ext = readl(&ainfo->base_ext);
+  offset   = readl(&ainfo->offset);
+
+  if (base_ext) {
+    ret = (void *)base_ext + offset;
+  }
+  else {
+    ret = (void *)smem_addr + offset;
+  }
+
+  return ret;
+}
+
+unsigned smem_read_alloc_entry_offset(
+    smem_mem_type_t type, void *buf, int len, int offset)
 {
   struct smem_alloc_info *ainfo;
-  unsigned *dest = buf;
-  unsigned src;
-  unsigned size = len;
+  unsigned *              dest = buf;
+  unsigned                src;
+  unsigned                size      = len;
+  uint32_t                smem_addr = 0;
+  struct smem *           smem;
+
+  smem_addr = smem_get_base_addr();
+  smem      = (struct smem *)smem_addr;
 
   if (((len & 0x3) != 0) || (((unsigned)buf & 0x3) != 0))
     return 1;
@@ -83,7 +140,7 @@ unsigned smem_read_alloc_entry_offset(smem_mem_type_t type, void *buf, int len, 
   if (readl(&ainfo->allocated) == 0)
     return 1;
 
-  src = MSM_SHARED_BASE + readl(&ainfo->offset) + offset;
+  src = smem_addr + readl(&ainfo->offset) + offset;
   for (; size > 0; src += 4, size -= 4)
     *(dest++) = readl(src);
 
