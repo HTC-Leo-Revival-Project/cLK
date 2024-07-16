@@ -43,6 +43,8 @@
 #include <dev/keys.h>
 #include <dev/fbcon.h>
 
+#include <smem.h>
+
 #include "recovery.h"
 #include "bootimg.h"
 #include "fastboot.h"
@@ -743,6 +745,10 @@ boot_menu:
 	display_init();
 	aboot_init_fastboot(usb_init);
 	init_ui();
+
+	// Read smem ptable here for now
+	smem_ptable_init();
+  	smem_ram_ptable_init_v1();
 }
 
 APP_START(aboot)
