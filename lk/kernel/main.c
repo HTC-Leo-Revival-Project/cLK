@@ -80,11 +80,11 @@ void kmain(void)
 
 	dprintf(INFO, "welcome to lk\n\n");
 	// Read smem ptable here for now
-	smem_ptable_init();
-  	smem_ram_ptable_init_v1();
-	uint32_t ddr_start = get_ddr_start();
-	dprintf(CRITICAL, "ddr start: %08x\n", ddr_start);
-	for (;;);
+	// smem_ptable_init();
+  	// smem_ram_ptable_init_v1();
+	// uint32_t ddr_start = get_ddr_start();
+	// dprintf(CRITICAL, "ddr start: %08x\n", ddr_start);
+	// for (;;);
 	
 	// deal with any static constructors
 	dprintf(SPEW, "calling constructors\n");
