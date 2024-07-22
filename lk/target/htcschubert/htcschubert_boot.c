@@ -12,7 +12,7 @@
 #define VIC_INT_CLEAR1      VIC_REG(0x00B4)
 #define VIC_INT_MASTEREN    VIC_REG(0x0068)  /* 1: IRQ, 2: FIQ     */
 
-void htcleo_disable_interrupts(void)
+void htcschubert_disable_interrupts(void)
 {
 	//clear current pending interrupts
 	writel(0xffffffff, VIC_INT_CLEAR0);
@@ -25,9 +25,9 @@ void htcleo_disable_interrupts(void)
 	writel(0, VIC_INT_MASTEREN);
 }
 
-void htcleo_boot_s(void* kernel,unsigned machtype,void* tags);
-void htcleo_boot(void* kernel,unsigned machtype,void* tags)
+void htcschubert_boot_s(void* kernel,unsigned machtype,void* tags);
+void htcschubert_boot(void* kernel,unsigned machtype,void* tags)
 {
-	htcleo_disable_interrupts();
-	htcleo_boot_s(kernel, machtype, tags);
+	htcschubert_disable_interrupts();
+	htcschubert_boot_s(kernel, machtype, tags);
 }

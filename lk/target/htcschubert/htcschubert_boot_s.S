@@ -2,7 +2,7 @@
 .code 32
 
 .globl htcleo_boot_s
-htcleo_boot_s:
+htcschubert_boot_s:
 		// save registers
 		MOV r9, r0
 

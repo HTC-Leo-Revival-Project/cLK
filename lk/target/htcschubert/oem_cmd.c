@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <reg.h>
+#include <dev/keys.h>
 
 void fastboot_okay(const char *info);
 void fastboot_fail(const char *reason);
@@ -102,6 +103,27 @@ static void cmd_oem_dumpmem(const char *arg)
 	send_mem((char*)str2u(sStart), str2u(sLen));
 	fastboot_okay("");
 }
+
+static void cmd_oem_volumedown(void){
+	keys_post_event(0x116, 1);
+	mdelay(500);
+	keys_post_event(0x116, 0);
+	fastboot_okay("");
+}
+
+static void cmd_oem_volumeup(void){
+	keys_post_event(0x115, 1);
+	mdelay(500);
+	keys_post_event(0x115, 0);
+	fastboot_okay("");
+}
+
+static void cmd_oem_enterkey(void){
+	keys_post_event(0x120, 1);
+	mdelay(500);
+	keys_post_event(0x120, 0);
+	fastboot_okay("");
+}
 static void cmd_oem_set(const char *arg)
 {
 	char type=*arg; arg++;
@@ -140,6 +162,9 @@ static void cmd_oem(const char *arg, void *data, unsigned sz)
 	if(memcmp(arg, "smesg", 5)==0) cmd_oem_smesg();
 	if(memcmp(arg, "pwf ", 4)==0) cmd_oem_dumpmem(arg+4);
 	if(memcmp(arg, "set", 3)==0) cmd_oem_set(arg+3);
+	if(memcmp(arg, "down", 4)==0) cmd_oem_volumedown();
+	if(memcmp(arg, "up", 2)==0) cmd_oem_volumeup();
+	if(memcmp(arg, "enter", 5)==0) cmd_oem_enterkey();
 }
 
 void cmd_oem_register()

@@ -57,8 +57,8 @@ OBJS += \
 	$(LOCAL_DIR)/atags.o 
 
 OBJS += \
-	$(LOCAL_DIR)/htcleo_boot.o \
-	$(LOCAL_DIR)/htcleo_boot_s.o\
+	$(LOCAL_DIR)/htcschubert_boot.o \
+	$(LOCAL_DIR)/htcschubert_boot_s.o\
 	$(LOCAL_DIR)/platform.o \
 	$(LOCAL_DIR)/oem_cmd.o
 		

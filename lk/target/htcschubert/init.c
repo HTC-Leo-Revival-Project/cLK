@@ -16,7 +16,7 @@
 #include "version.h"
 
 #define LINUX_MACHTYPE  2524
-#define HTCLEO_FLASH_OFFSET	0x219
+#define htcschubert_FLASH_OFFSET	0x219
 
 struct ptable flash_ptable;
 
@@ -99,7 +99,7 @@ void target_init(void)
 			display_lk_version();
 			break;
 		}
-	dprintf(INFO, "htcleo_init\n");
+	dprintf(INFO, "htcschubert_init\n");
 
 	if(get_boot_reason() == 2) { // booting for offmode charging, start recovery so kernel will charge phone
 		boot_into_recovery = 1;
@@ -124,7 +124,7 @@ void target_init(void)
 	else
 		panic("Invalid partition table\n");
 
-	start_block = HTCLEO_FLASH_OFFSET;
+	start_block = htcschubert_FLASH_OFFSET;
 	for (unsigned i = 1; i < num_parts; i++) {
 		struct ptentry *ptn = &board_part_list[i];
 		if( IS_PART_EMPTY(ptn) )
